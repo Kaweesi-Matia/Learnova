@@ -1,0 +1,11 @@
+import {Router} from "express";
+import Progress from "../models/Progress.js";
+import Enrollment from "../models/Enrollment.js";
+import Course from "../models/Course.js";
+import Certificate from "../models/Certificate.js";
+import {auth} from "../middleware/auth.js";
+import crypto from "crypto";
+const r=Router();
+r.get("/:courseId",auth,async(req,res,next)=>{try{const p=await Progress.findOne({student:req.user._id,course:req.params.courseId});res.json({progress:p||{completedLessons:[]}})}catch(e){next(e)}});
+r.put("/:courseId",auth,async(req,res,next)=>{try{const {lessonId,completed}=req.body;let p=await Progress.findOne({student:req.user._id,course:req.params.courseId});if(!p)p=await Progress.create({student:req.user._id,course:req.params.courseId});if(completed&&!p.completedLessons.some(x=>String(x)===String(lessonId)))p.completedLessons.push(lessonId);p.lastLesson=lessonId;const c=await Course.findById(req.params.courseId);const total=c.modules.reduce((n,m)=>n+m.lessons.length,0);p.percentage=total?Math.round(p.completedLessons.length/total*100):0;await p.save();const e=await Enrollment.findOneAndUpdate({student:req.user._id,course:req.params.courseId},{progress:p.percentage,currentLesson:lessonId,completed:p.percentage===100,completedAt:p.percentage===100?new Date():undefined},{new:true});if(p.percentage===100&&e){await Certificate.findOneAndUpdate({student:req.user._id,course:req.params.courseId},{student:req.user._id,course:req.params.courseId,certificateId:`LH-${crypto.randomBytes(5).toString("hex").toUpperCase()}`},{upsert:true,new:true})}res.json({progress:p})}catch(e){next(e)}});
+export default r;

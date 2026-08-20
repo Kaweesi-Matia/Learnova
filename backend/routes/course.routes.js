@@ -1,0 +1,10 @@
+import {Router } from "express";
+import Course from "../models/Course.js";
+import {auth,roles} from "../middleware/auth.js";
+const r=Router();
+r.get("/",async(req,res,next)=>{try{const q={published:true};if(req.query.search)q.$or=[{title:{$regex:req.query.search,$options:"i"}},{description:{$regex:req.query.search,$options:"i"}}];if(req.query.level)q.level=req.query.level;let sort={createdAt:-1};if(req.query.sort==="popular")sort={studentsCount:-1};if(req.query.sort==="rating")sort={rating:-1};const courses=await Course.find(q).populate("category","name").populate("instructor","name").sort(sort).limit(100);res.json({courses})}catch(e){next(e)}});
+r.get("/:id",async(req,res,next)=>{try{const course=await Course.findById(req.params.id).populate("category","name").populate("instructor","name");if(!course)return res.status(404).json({message:"Course not found"});res.json({course})}catch(e){next(e)}});
+r.post("/",auth,roles("INSTRUCTOR","ADMIN"),async(req,res,next)=>{try{const c=await Course.create({...req.body,instructor:req.user._id});res.status(201).json({course:c})}catch(e){next(e)}});
+r.put("/:id",auth,roles("INSTRUCTOR","ADMIN"),async(req,res,next)=>{try{const c=await Course.findByIdAndUpdate(req.params.id,req.body,{new:true,runValidators:true});res.json({course:c})}catch(e){next(e)}});
+r.delete("/:id",auth,roles("INSTRUCTOR","ADMIN"),async(req,res,next)=>{try{await Course.findByIdAndDelete(req.params.id);res.json({message:"Course deleted"})}catch(e){next(e)}});
+export default r;
