@@ -1,0 +1,13 @@
+import { useEffect, useState } from "react";
+import DashboardLayout from "../../layouts/DashboardLayout";
+import api from "../../services/api";
+
+export default function AdminUsersPage() {
+  const [users, setUsers] = useState([]); const [search, setSearch] = useState(""); const [loading, setLoading] = useState(true); const [error, setError] = useState("");
+  const load = async () => { try { setLoading(true); const {data}=await api.get(`/admin/users?search=${encodeURIComponent(search)}`); setUsers(data.users||[]); setError(""); } catch(e){setError(e.response?.data?.message||"Unable to load users")} finally{setLoading(false)} };
+  useEffect(()=>{load()},[]);
+  const role = async (id, value) => { try { await api.put(`/admin/users/${id}`, {role:value}); load(); } catch(e){alert(e.response?.data?.message||"Update failed")} };
+  const remove = async id => { if(!confirm("Delete this user?")) return; try{await api.delete(`/admin/users/${id}`); load()}catch(e){alert(e.response?.data?.message||"Delete failed")} };
+  return <DashboardLayout role="ADMIN"><div className="space-y-6"><Header title="Users" text="Manage students, instructors and administrators."/><div className="card p-4"><div className="flex gap-3"><input className="input" placeholder="Search name or email..." value={search} onChange={e=>setSearch(e.target.value)} onKeyDown={e=>e.key==='Enter'&&load()}/><button className="btn-primary" onClick={load}>Search</button></div></div>{error&&<Error text={error}/>}<div className="card overflow-hidden"><div className="overflow-x-auto"><table className="w-full text-left text-sm"><thead className="bg-slate-50"><tr><th className="p-4">Name</th><th className="p-4">Email</th><th className="p-4">Role</th><th className="p-4">Status</th><th className="p-4">Action</th></tr></thead><tbody>{loading?<tr><td className="p-6" colSpan="5">Loading...</td></tr>:users.map(u=><tr className="border-t" key={u._id}><td className="p-4 font-semibold">{u.name}</td><td className="p-4">{u.email}</td><td className="p-4"><select className="rounded-lg border px-2 py-1" value={u.role} onChange={e=>role(u._id,e.target.value)}><option>STUDENT</option><option>INSTRUCTOR</option><option>ADMIN</option></select></td><td className="p-4">{u.isApproved?'Approved':'Pending'}</td><td className="p-4"><button className="text-red-600" onClick={()=>remove(u._id)}>Delete</button></td></tr>)}</tbody></table></div></div></div></DashboardLayout>
+}
+function Header({title,text}){return <div><p className="eyebrow">Admin portal</p><h1 className="mt-2 text-3xl font-black">{title}</h1><p className="mt-2 text-slate-500">{text}</p></div>}; function Error({text}){return <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-red-700">{text}</div>}

@@ -1,0 +1,5 @@
+import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+import api from "../../services/api";
+import Loading from "../../components/Loading";
+export default function CertificateViewPage(){const{id}=useParams();const[c,setC]=useState(null);const[loading,setLoading]=useState(true);useEffect(()=>{api.get(`/certificates/${id}`).then(r=>setC(r.data.certificate)).finally(()=>setLoading(false))},[id]);if(loading)return <Loading/>;if(!c)return <div className="card p-10">Certificate not found.</div>;return <main className="container-page py-16"><div className="mx-auto max-w-3xl rounded-3xl border-8 border-brand-100 bg-white p-12 text-center shadow-soft"><p className="eyebrow">LearnHub</p><h1 className="mt-4 text-4xl font-black">Certificate of Completion</h1><p className="mt-8 text-slate-500">This certificate is awarded to</p><h2 className="mt-2 text-3xl font-bold">{c.student?.name}</h2><p className="mt-8 text-slate-500">For successfully completing</p><h3 className="mt-2 text-2xl font-bold">{c.course?.title}</h3><p className="mt-8 text-sm text-slate-500">Certificate ID: {c.certificateId}</p></div></main>}
