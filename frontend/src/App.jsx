@@ -8,6 +8,8 @@ import LearnPage from "./pages/LearnPage";
 import PlaceholderPage from "./pages/PlaceholderPage";
 import InstructorsPage from "./pages/InstructorsPage";
 import AboutPage from "./pages/AboutPage";
+import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
+import ResetPasswordPage from "./pages/auth/ResetPasswordPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 import DashboardLayout from "./layouts/DashboardLayout";
 import MyCoursesPage from "./pages/dashboard/MyCoursesPage";
@@ -40,7 +42,8 @@ export default function App() {
       <Route path="/courses/:id" element={<CourseDetailPage />} />
       <Route path="/login" element={<AuthPage mode="login" />} />
       <Route path="/register" element={<AuthPage mode="register" />} />
-      <Route path="/forgot-password" element={<PlaceholderPage title="Forgot password" />} />
+      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+      <Route path="/reset-password/:resetToken" element={<ResetPasswordPage />} />
       <Route path="/about" element={<AboutPage />} />
       <Route path="/instructors" element={<InstructorsPage />} />
 
