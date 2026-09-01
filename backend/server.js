@@ -52,8 +52,8 @@ const startServer = async () => {
     if (!process.env.JWT_SECRET) throw new Error("JWT_SECRET is missing in backend/.env");
     if (!process.env.MONGO_URI) throw new Error("MONGO_URI is missing in backend/.env");
 
-    await mongoose.connect(process.env.MONGO_URI);
-    console.log("MongoDB connected");
+    await mongoose.connect(process.env.MONGO_URI, { dbName: "learnhub" });
+    console.log(`MongoDB connected: ${mongoose.connection.name}`);
     app.listen(PORT, () => {
       console.log(`LearnHub API running on http://localhost:${PORT}`);
       console.log(`JWT_SECRET loaded: ${Boolean(process.env.JWT_SECRET)}`);

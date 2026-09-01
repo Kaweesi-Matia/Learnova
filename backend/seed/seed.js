@@ -22,7 +22,7 @@ const categories=[
 const thumbs=[
 "https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=1000&q=80","https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=1000&q=80","https://images.unsplash.com/photo-1515879218367-8466d910aaa4?auto=format&fit=crop&w=1000&q=80","https://images.unsplash.com/photo-1555949963-aa79dcee981c?auto=format&fit=crop&w=1000&q=80","https://images.unsplash.com/photo-1561070791-2526d30994b5?auto=format&fit=crop&w=1000&q=80","https://images.unsplash.com/photo-1484417894907-623942c8ee29?auto=format&fit=crop&w=1000&q=80","https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=1000&q=80","https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1000&q=80"];
 
-await mongoose.connect(process.env.MONGO_URI || "mongodb://127.0.0.1:27017/learnhub");
+await mongoose.connect(process.env.MONGO_URI || "mongodb://127.0.0.1:27017/learnhub", { dbName: "learnhub" });
 await Promise.all([User.deleteMany({}),Category.deleteMany({}),Course.deleteMany({}),Enrollment.deleteMany({}),Progress.deleteMany({}),Wishlist.deleteMany({}),Review.deleteMany({}),Certificate.deleteMany({})]);
 
 const pass=await bcrypt.hash("Password123!",12);
