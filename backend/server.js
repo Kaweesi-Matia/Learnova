@@ -72,10 +72,11 @@ const startServer = async () => {
 
     await mongoose.connect(process.env.MONGO_URI, { dbName: "learnhub" });
     const userCount = await mongoose.connection.db.collection("users").countDocuments();
-    console.log(`MongoDB connected: ${mongoose.connection.name} users=${userCount}`);
+    const courseCount = await mongoose.connection.db.collection("courses").countDocuments();
+    console.log(`MongoDB connected: ${mongoose.connection.name} users=${userCount} courses=${courseCount}`);
 
-    if (userCount === 0) {
-      console.log("Database empty, running seed...");
+    if (userCount === 0 || courseCount === 0) {
+      console.log("Database missing demo data, running seed...");
       const { stdout, stderr } = await execFileAsync(process.execPath, ["seed/seed.js"], {
         cwd: process.cwd(),
         env: process.env,
