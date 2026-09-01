@@ -1,8 +1,12 @@
+import { execFile } from "child_process";
+import { promisify } from "util";
 import express from "express";
 import dotenv from "dotenv";
 import mongoose from "mongoose";
 import cors from "cors";
 import morgan from "morgan";
+
+const execFileAsync = promisify(execFile);
 
 import authRoutes from "./routes/auth.routes.js";
 import courseRoutes from "./routes/course.routes.js";
@@ -26,7 +30,21 @@ app.use(express.json());
 app.use(morgan("dev"));
 
 app.get("/", (req, res) => res.json({ success: true, message: "LearnHub API is running" }));
-app.get("/api/health", (req, res) => res.json({ success: true, message: "API healthy" }));
+app.get("/api/health", async (req, res) => {
+  try {
+    const users = await mongoose.connection.db.collection("users").countDocuments();
+    const courses = await mongoose.connection.db.collection("courses").countDocuments();
+    res.json({
+      success: true,
+      message: "API healthy",
+      db: mongoose.connection.name,
+      users,
+      courses,
+    });
+  } catch {
+    res.json({ success: true, message: "API healthy" });
+  }
+});
 
 app.use("/api/auth", authRoutes);
 app.use("/api/courses", courseRoutes);
@@ -53,7 +71,19 @@ const startServer = async () => {
     if (!process.env.MONGO_URI) throw new Error("MONGO_URI is missing in backend/.env");
 
     await mongoose.connect(process.env.MONGO_URI, { dbName: "learnhub" });
-    console.log(`MongoDB connected: ${mongoose.connection.name}`);
+    const userCount = await mongoose.connection.db.collection("users").countDocuments();
+    console.log(`MongoDB connected: ${mongoose.connection.name} users=${userCount}`);
+
+    if (userCount === 0) {
+      console.log("Database empty, running seed...");
+      const { stdout, stderr } = await execFileAsync(process.execPath, ["seed/seed.js"], {
+        cwd: process.cwd(),
+        env: process.env,
+      });
+      if (stdout) console.log(stdout);
+      if (stderr) console.error(stderr);
+    }
+
     app.listen(PORT, () => {
       console.log(`LearnHub API running on http://localhost:${PORT}`);
       console.log(`JWT_SECRET loaded: ${Boolean(process.env.JWT_SECRET)}`);
